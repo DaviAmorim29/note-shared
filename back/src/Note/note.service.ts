@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { User } from "src/User/domain/user.entity";
+import { UserService } from "src/User/user.service";
 import { Note } from "./domain/note.entity";
 import { NoteRepository } from "./infra/database/note-repository";
 
 @Injectable()
 export class NoteService {
-    constructor(private noteRepository: NoteRepository) {}
+    constructor(private noteRepository: NoteRepository, private userService: UserService) {}
 
     async getNoteById(id: string) {
         const note = await this.noteRepository.findById(id)
@@ -15,6 +16,16 @@ export class NoteService {
     async updateNoteText(id: string, text: string) {
         const note = await this.noteRepository.findById(id)
         note.updateText(text)
+        await this.noteRepository.save(note)
+    }
+
+    async updateNoteCollab(id: string, collab: string[]) {
+        const user = await this.userService.getUserByUsername(collab[0])
+        if (!user) {
+            return null
+        }
+        const note = await this.noteRepository.findById(id)
+        note.addNewCollaborator(user.name)
         await this.noteRepository.save(note)
     }
 
@@ -30,5 +41,13 @@ export class NoteService {
     async getNoteUsers({userId}: {userId: string}) {
         const note = await this.noteRepository.findByAuthor(userId)
         return note
+    }
+
+    async deleteNote(id: string, userId: string) {
+        const note = await this.noteRepository.findById(id)
+        if (note.userId.toString() !== userId) {
+            return null
+        }
+        return this.noteRepository.delete(note)
     }
 }

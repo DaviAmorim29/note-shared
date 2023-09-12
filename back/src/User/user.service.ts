@@ -23,4 +23,12 @@ export class UserService {
         return user
     }
 
+    async getUserByUsername(name: string) {
+        const user = await this.userRepository.findByUsername(name)
+        if (!user) {
+            return null
+        }
+        return user
+    }
+
 }

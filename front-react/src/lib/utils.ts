@@ -12,4 +12,8 @@ export function truncateText(input: string, limit: number = 30): string {
 }
 
 
-export const socket = io(import.meta.env.VITE_SOCKET_URL)
+export const socket = io(import.meta.env.VITE_API_URL, {
+  auth: {
+    token: localStorage.getItem('token')
+  },
+})

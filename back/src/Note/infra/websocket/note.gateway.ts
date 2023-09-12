@@ -1,6 +1,5 @@
 import { MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { NoteService } from 'src/Note/note.service';
 
 @WebSocketGateway({
     cors: {
@@ -8,14 +7,14 @@ import { NoteService } from 'src/Note/note.service';
     }
 })
 export class NoteGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
-    constructor(private noteService: NoteService) {}
+    constructor() {}
     @WebSocketServer()
     server: Server;
 
     @SubscribeMessage('updateText')
-    async updateText(@MessageBody() data: { id: string, text: string }) {
-        this.server.to(data.id).emit('updateText', { id: data.id, text: data.text });
-        await this.noteService.updateNoteText(data.id, data.text)
+    async updateText(@MessageBody() data: { id: string, text: string, clientId: string }) {
+        this.server.to(data.id).emit('updateText', { id: data.id, text: data.text, clientId: data.clientId });
+        // await this.noteService.updateNoteText(data.id, data.text)
     }
     
     @SubscribeMessage('join')

@@ -1,5 +1,6 @@
 import { API_URL } from '@/common/contants';
 import { useMutation, useQueryClient } from 'react-query';
+import { logout } from './authService';
 
 export interface INote {
     id: string;
@@ -50,7 +51,7 @@ export const addNoteRequest = async (data: AddNoteDTO): Promise<INote> => {
     return response.json();
 };
 
-const deleteNote = async (id: string): Promise<void> => {
+export const deleteNoteRequest = async (id: string): Promise<void> => {
     const response = await fetch(`${API_URL}/note/${id}`, {
         method: 'DELETE',
         headers: {
@@ -63,7 +64,8 @@ const deleteNote = async (id: string): Promise<void> => {
         throw new Error(data.message || 'Algum erro');
     }
     
-    return response.json();
+    return
+    // return response.json();
 }
 
 export const updateNote = async (data: UpdateNoteDTO): Promise<void> => {
@@ -84,7 +86,7 @@ export const updateNote = async (data: UpdateNoteDTO): Promise<void> => {
 }
 
 export const useDeleteNote = () => {
-    return useMutation(deleteNote);
+    return useMutation(deleteNoteRequest);
 }
 
 export const useUpdateNote = () => {
@@ -121,7 +123,7 @@ export const deleteNoteMutation = () => {
     const queryClient = useQueryClient()
     return useMutation(
         async (id: string) => {
-            const response = await deleteNote(id)
+            const response = await deleteNoteRequest(id)
             return response
         },
         {
@@ -142,9 +144,11 @@ export const getNotes = async (): Promise<INote[]> => {
 
     if (!response.ok) {
         const data = await response.json();
+        if (response.status === 401) {
+            logout()
+        }
         throw new Error(data.message || 'Algum erro');
     }
-
     return response.json();
 }
 

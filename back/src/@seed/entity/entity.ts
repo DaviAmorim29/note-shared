@@ -1,7 +1,7 @@
 import { UniqueEntityId } from "../value-object/unique-entity-id.vo";
 
 export abstract class Entity<T> {
-    public readonly uniqueEntityId: UniqueEntityId
+    public uniqueEntityId: UniqueEntityId
     constructor(public readonly props: T, id?: UniqueEntityId) {
         this.uniqueEntityId = id ? id : new UniqueEntityId()
     }

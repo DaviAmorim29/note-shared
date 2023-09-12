@@ -1,8 +1,12 @@
 import { socket } from "@/lib/utils";
 import { UpdateNoteDTO, updateNoteMutation } from "@/services/noteService";
-import debounce from 'lodash.debounce';
+import debounce from "lodash.debounce";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "../ui/use-toast";
+
+const clientId = Math.random().toString(36).substring(7)
+
+// const debouncedSave = debounce((nextValue: UpdateNoteDTO) => updateNote(nextValue),5000)
 
 interface TextEditorProps {
     defaultText: string;
@@ -12,27 +16,34 @@ export function TextEditor({ defaultText, noteId }: TextEditorProps) {
     const [noteText, setNoteText] = useState(defaultText)
     const { mutate: updateNoteMutate } = updateNoteMutation()
     const debouncedSave = useCallback(
-		debounce((nextValue: UpdateNoteDTO) => updateNoteMutate(nextValue, {onError: () => {toast({
+		debounce((nextValue: UpdateNoteDTO) => updateNoteMutate(nextValue, {onSuccess: () => {
+            toast({
+                title: 'Sucesso!',
+                description: 'Nota salva com sucesso.',
+                duration: 2000
+            })
+        },onError: () => {toast({
             title: 'Erro!',
             description: 'Não foi possível salvar a nota.',
-        })}}), 1000),
+        })}}), 2500),
 		[],
 	);
     useEffect(() => {
         socket.emit('join', noteId)
-        socket.on('updateText', ({ id, text }) => {
-            if (id !== id) return
-            if (text === noteText) return
-            setNoteText(noteText)
+        socket.on('updateText', ({ id, text: requestText, clientId: requestClientId }) => {
+            if (id !== noteId) return
+            if (clientId === requestClientId) return
+            setNoteText(requestText)
         })
         return () => {
             socket.emit('leave', noteId)
         }
-    }, [])
+    }, [noteId])
     const handleChangeText = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setNoteText(e.target.value)
-        socket.emit('updateText', { id: noteId, text: e.target.value })
-        debouncedSave({ id: noteId, text: e.target.value })
+        const newValue = e.target.value;
+        socket.emit('updateText', { id: noteId, text: newValue, clientId})
+        setNoteText(newValue)
+        debouncedSave({id: noteId , text: newValue})
     }
     return (
         <div>

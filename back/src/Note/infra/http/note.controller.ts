@@ -2,7 +2,7 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Body, Controller, Get, Param, Post, Put, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { NoteService } from 'src/Note/note.service';
 import { User } from 'src/User/domain/user.entity';
@@ -38,5 +38,19 @@ export class NoteController {
     @Put(':id/text')
     async update(@Param('id') id: string, @Body('text') text: string) {
         return this.noteService.updateNoteText(id, text)
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Put(':id/collab')
+    async updateCollab(@Param('id') id: string, @Body('text') text: string[]) {
+        return this.noteService.updateNoteCollab(id, text)
+    }
+
+    @UseGuards(AuthGuard('jwt'))
+    @Delete(':id')
+    async delete(@Param('id') id: string, @Request() req) {
+        console.log(req.user, 'id: ', id)
+        const user = req.user as User
+        return this.noteService.deleteNote(id, user.id.toString())
     }
 }

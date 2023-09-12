@@ -6,7 +6,7 @@ export interface NoteProps {
     title: string
     userId: UniqueEntityId
     text?: string
-    collaborators?: UniqueEntityId[]
+    collaborators?: string[]
     createdAt?: Date
     updatedAt?: Date
 }
@@ -63,7 +63,7 @@ export class Note extends Entity<NoteProps> {
         return this.props.collaborators
     }
 
-    set collaborators(collaborators: UniqueEntityId[]) {
+    set collaborators(collaborators: string[]) {
         this.props.collaborators = collaborators
     }
 
@@ -93,7 +93,7 @@ export class Note extends Entity<NoteProps> {
         this.updateUpdatedAt()
     }
 
-    addNewCollaborator(collaboratorId: UniqueEntityId) {
+    addNewCollaborator(collaboratorId: string) {
         this.collaborators.push(collaboratorId)
         this.updateUpdatedAt()
     }
@@ -102,15 +102,15 @@ export class Note extends Entity<NoteProps> {
         this.updateUpdatedAt()
     }
 
-    toCustomJSON(): Required<{ id: string; } & Replace<NoteProps, 'userId', string>> {
+    toCustomJSON(): Required<{ id: string; } & Replace<NoteProps, 'userId', string & Replace<NoteProps, 'collaborators', string[]>>> {
         return {
             id: this.id.toString(),
             title: this.title,
             userId: this.userId.toString(),
-            collaborators: this.collaborators,
+            collaborators: this.collaborators.map(collaborator => collaborator.toString()),
             text: this.text,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
-        } as Required<{ id: string; } & Replace<NoteProps, 'userId', string>>
+        } as any
     }
 }

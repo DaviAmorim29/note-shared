@@ -37,9 +37,9 @@ export function AddCollaboratorModal({ note }: AddCollaboratorModalProps) {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <button className="bg-zinc-300 rounded-md p-2 hover:bg-zinc-400 active:bg-zinc-500 duration-75">
+                <Button className="rounded-md">
                     <Users2 size={20} />
-                </button>
+                </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>

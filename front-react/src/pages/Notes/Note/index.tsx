@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header"
 import { AddCollaboratorModal } from "@/components/Note/AddCollaboratorModal"
+import { DeleteNoteModal } from "@/components/Note/DeleteNoteModal"
 import { TextEditor } from "@/components/Note/TextEditor"
 import { useNotes } from "@/contexts/Note/NoteContext"
 import { useParams } from "react-router-dom"
@@ -40,7 +41,10 @@ export function NotePage() {
             <header className="flex flex-col">
                 <div className="justify-between flex flex-row">
                     <h1 className="font-bold text-2xl">{note.title}</h1>
-                    <AddCollaboratorModal note={note} />
+                    <div className="flex flex-row gap-2">
+                        <AddCollaboratorModal note={note} />
+                        <DeleteNoteModal note={note} />
+                    </div>
                 </div>
                 <div className="flex flex-row">
                     <h2 className="text-lg font-semibold">Colaboradores: </h2>

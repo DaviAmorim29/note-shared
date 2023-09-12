@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: ./back/
+      dockerfile: dockerfile.dev
+    ports:
+      - 3001:3001
+    # volumes:
+    #   - ./back/:/home/node/app:cached
+    # command: /bin/sh -c "while sleep 1000; do :; done"
+    environment:
+      - DATABASE_URL=file:./dev.db?mode=memory&cache=shared
+
+  front:
+    build: 
+      context: ./front-react/
+      dockerfile: dockerfile.dev
+    ports:
+      - 3000:3000
+    # volumes:
+      # - ./front-react/:/home/node/app:cached
+    # command: /bin/sh -c "while sleep 1000; do :; done"
+    environment:
+      - VITE_API_URL=http://app:3001

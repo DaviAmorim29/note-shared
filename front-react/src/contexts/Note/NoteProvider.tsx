@@ -1,4 +1,4 @@
-import { INote, addNoteRequest, getNotes, updateNote } from "@/services/noteService";
+import { INote, addNoteRequest, deleteNoteRequest, getNotes, updateNote } from "@/services/noteService";
 import { ReactNode, useEffect, useState } from "react";
 import { useAuth } from "../Auth/AuthContext";
 import { NoteContext } from "./NoteContext";
@@ -36,7 +36,7 @@ export const NotesProvider = ({ children }: NotesProviderProps) => {
   };
 
   const deleteNote = async (noteId: string) => {
-    await deleteNote(noteId);
+    await deleteNoteRequest(noteId);
     setNotes((prevNotes) => prevNotes.filter((note) => note.id !== noteId));
   };
 

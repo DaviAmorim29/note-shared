@@ -24,16 +24,9 @@ const loginAPI = async (username: string): Promise<LoginResponse> => {
     return response.json();
 };
 
-const loginFakeAPI = async (username: string): Promise<LoginResponse> => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return {
-        id: '1',
-        username,
-        token: '123213'
-    }
+export const logout = () => {
+    localStorage.removeItem('user');
 }
-
-export const logout = () => {}
 
 export const useLogin = () => {
     return useMutation(loginAPI);

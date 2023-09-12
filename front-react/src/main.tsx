@@ -6,7 +6,6 @@ import { AuthRoute } from "./components/AuthRoute.tsx";
 import { MainLayout } from './components/layout/MainLayout.tsx';
 import "./global.css";
 import { Home } from "./pages/Notes/Home.tsx";
-import { NoteEditPage } from "./pages/Notes/Note/edit.tsx";
 import { NotePage } from "./pages/Notes/Note/index.tsx";
 import { LoginPage } from "./pages/login.tsx";
 
@@ -32,15 +31,7 @@ const router = createBrowserRouter([
         <AuthRoute>
           <NotePage />
         </AuthRoute>),
-      },
-      {
-        path: "/notes/:noteId/edit",
-        element: (
-          <AuthRoute>
-            <NoteEditPage />
-          </AuthRoute>
-        ),
-      },
+      }
     ],
   },
 ]);
