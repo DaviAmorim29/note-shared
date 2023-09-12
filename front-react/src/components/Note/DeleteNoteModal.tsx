@@ -1,18 +1,18 @@
 import { useNotes } from "@/contexts/Note/NoteContext";
-import { INote } from "@/services/noteService";
-import { DeleteIcon } from "lucide-react";
+import { INote, deleteNoteMutation } from "@/services/noteService";
+import { Trash } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "../ui/alert-dialog";
 import { Button } from "../ui/button";
 import { toast } from "../ui/use-toast";
@@ -24,31 +24,33 @@ interface DeleteNoteModalProps {
 export function DeleteNoteModal({ note }: DeleteNoteModalProps) {
   const [isLoading, setLoading] = useState(false);
   const { deleteNote } = useNotes();
+  const { mutate: deleteNoteMutate } = deleteNoteMutation()
   const navigate = useNavigate()
   async function handleSubmit() {
     setLoading(true);
-    try {
-      await deleteNote(note.id);
-      console.log('Chega auqi ?')
-      toast({
-        title: "Sucesso!",
-        description: "Nota removida.",
-      });
-      navigate('/notes')
-    } catch (E) {
-        console.error(E)
-      toast({
-        title: "Erro!",
-        description: "Não foi possível remove a nota.",
-      });
-    }
+    deleteNoteMutate(note.id, {
+      onSuccess: () => {
+        toast({
+          title: "Sucesso!",
+          description: "Nota removida.",
+        });
+        navigate('/notes')
+        deleteNote(note.id)
+      },
+      onError: () => {
+        toast({
+          title: "Erro!",
+          description: "Não foi possível remove a nota.",
+        });
+      }
+    })
     setLoading(false);
   }
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button className="rounded-md">
-            <DeleteIcon size={20} />
+        <Button variant={'destructive'} className="rounded-md">
+            <Trash size={20} />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

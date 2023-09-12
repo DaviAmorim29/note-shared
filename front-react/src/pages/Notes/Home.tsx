@@ -1,35 +1,33 @@
 import { Header } from "@/components/Header";
 import { AddNoteModal } from "@/components/Note/AddNoteModal";
-import { PageLink } from "@/components/PageLink";
+import { NoteList } from "@/components/Note/NoteList";
+import { useAuth } from "@/contexts/Auth/AuthContext";
 import { useNotes } from "@/contexts/Note/NoteContext";
-import { truncateText } from "@/lib/utils";
-import { INote } from "@/services/noteService";
+import { Navigate } from "react-router-dom";
 
 export function Home() {
   const { isLoading, notes } = useNotes();
+  const { user, logout } = useAuth()
+  if (!user) {
+    return Navigate({
+      to: '/login'
+    })
+  }
   return (
     <main>
       <Header.Container>
-        <Header.Title>Notas</Header.Title>
-        <Header.Button>
-          <AddNoteModal />
-        </Header.Button>
+        <Header.Title>
+          Notas
+        </Header.Title>
+        <AddNoteModal />
       </Header.Container>
+      <h2 className="font-bold">User: <span className="font-normal">{user.user.name}</span></h2>
       <Header.Divider />
-      <div className="flex flex-col gap-2">
         {isLoading ? (
           <div>Carregando...</div>
         ) : (
-          notes.map((note: INote) => (
-            <PageLink href={`/notes/${note.id}`}>
-              <div className="p-4 flex flex-row justify-start rounded-md  duration-75 cursor-pointer bg-zinc-300  hover:bg-zinc-200 active:bg-zinc-400">
-                <h2>{note.title}</h2>
-                <p className="text-xs font-thin">{truncateText(note.text)}</p>
-              </div>
-            </PageLink>
-          ))
+          <NoteList userId={user.user.id} notes={notes} />
         )}
-      </div>
     </main>
   );
 }

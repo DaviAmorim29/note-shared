@@ -39,7 +39,7 @@ export class User extends Entity<UserProps> {
         this.updatedAt = new Date()
     }
 
-    static create({id, name}: { id?: string, name: string}) {
-        return new User({name}, id ? new UniqueEntityId(id) : undefined)
+    static create(userProps: UserProps, id?: UniqueEntityId) {
+        return new User(userProps, id)
     }
 }

@@ -1,9 +1,13 @@
 import { createContext, useContext } from "react";
 
 export interface IUser {
-    id: string;
-    username: string;
-    token: string;
+    token: string
+    user: {
+        id: string;
+        name: string;
+        createdAt: Date
+        updatedAt: Date
+    }
 }
 interface IAuthContext {
     user: IUser | null;

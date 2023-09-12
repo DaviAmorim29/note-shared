@@ -4,11 +4,10 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/Auth/AuthContext";
 import { useLogin } from "@/services/authService";
 import { Loader } from "lucide-react";
-import { redirect, useNavigate } from "react-router-dom";
+import { redirect } from "react-router-dom";
 
 export function LoginPage() {
     const { mutate: login, isLoading, isError, error } = useLogin()
-    const navigate = useNavigate()
     const { setLoginData, isAuth } = useAuth()
     if (isAuth) {
         redirect('/notes')
@@ -20,7 +19,6 @@ export function LoginPage() {
         login(username, {
             onSuccess: (data) => {
                 setLoginData(data);
-                navigate('/notes')
             }
         });
     }

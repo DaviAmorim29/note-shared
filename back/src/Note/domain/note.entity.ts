@@ -1,15 +1,18 @@
-import { Replace } from "src/@seed/utils";
+import { User, UserProps } from "src/User/domain/user.entity";
 import { Entity } from "../../@seed/entity/entity";
 import { UniqueEntityId } from "../../@seed/value-object/unique-entity-id.vo";
 
 export interface NoteProps {
     title: string
-    userId: UniqueEntityId
+    user: User
     text?: string
-    collaborators?: string[]
+    collaborators?: User[]
     createdAt?: Date
     updatedAt?: Date
 }
+
+// type CollabType = Required<CollabProps> & { id: string }
+type UserType = Required<UserProps> & { id: string }
 
 export class Note extends Entity<NoteProps> {
     constructor(props: NoteProps, id?: UniqueEntityId) {
@@ -17,7 +20,7 @@ export class Note extends Entity<NoteProps> {
         super(props, id)
         this.title = props.title
         this.text = props.text || ''
-        this.collaborators = props.collaborators || []
+        this.props.collaborators = props.collaborators || []
         this.props.createdAt = props.createdAt || new Date()
         this.updatedAt = props.updatedAt || new Date()
     }
@@ -26,8 +29,8 @@ export class Note extends Entity<NoteProps> {
         if (!props.title) {
             throw new Error('Note title is required')
         }
-        if (!props.userId) {
-            throw new Error('Note userId is required')
+        if (!props.user) {
+            throw new Error('Note User is required')
         }
     }
 
@@ -51,20 +54,16 @@ export class Note extends Entity<NoteProps> {
         this.props.text = text
     }
 
-    get userId() {
-        return this.props.userId
+    get user() {
+        return this.props.user
     }
 
-    set userId(userId: UniqueEntityId) {
-        this.props.userId = userId
+    set user(userId: User) {
+        this.props.user = userId
     }
 
     get collaborators() {
         return this.props.collaborators
-    }
-
-    set collaborators(collaborators: string[]) {
-        this.props.collaborators = collaborators
     }
 
     get createdAt() {
@@ -93,24 +92,30 @@ export class Note extends Entity<NoteProps> {
         this.updateUpdatedAt()
     }
 
-    addNewCollaborator(collaboratorId: string) {
-        this.collaborators.push(collaboratorId)
+    addNewCollaborators(users: User[]) {
+        users.forEach((collab) => {
+            this.props.collaborators.push(collab)
+        })
         this.updateUpdatedAt()
     }
-    removeCollaborator(collaboratorId: UniqueEntityId) {
-        this.collaborators = this.collaborators.filter(collaborator => collaborator.toString() !== collaboratorId.toString())
+    removeCollaborator(userCollab: User) {
+        this.props.collaborators = this.collaborators.filter(collaborator => collaborator.id !== userCollab.id)
         this.updateUpdatedAt()
     }
 
-    toCustomJSON(): Required<{ id: string; } & Replace<NoteProps, 'userId', string & Replace<NoteProps, 'collaborators', string[]>>> {
+    toCustomJSON(): Required<Omit<Omit<NoteProps, 'user'>, 'collaborators'> & { id: string ;collabs: UserType[]; user: UserType}> {
+        // const collabs: CollabType[] = this.collaborators.map(collaborator => collaborator.toJSON())
+        const collabs: UserType[] = this.collaborators.map(user => {
+            return user.toJSON()
+        })
         return {
             id: this.id.toString(),
             title: this.title,
-            userId: this.userId.toString(),
-            collaborators: this.collaborators.map(collaborator => collaborator.toString()),
+            user: this.user.toJSON(),
+            collabs,
             text: this.text,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
-        } as any
+        }
     }
 }

@@ -19,7 +19,7 @@ function HeaderButton({children}: {children: ReactNode}) {
 }
 
 function HeaderDivider() {
-    return <div className="h-1 w-full bg-zinc-700 my-6"></div>
+    return <div className="h-[2px] w-full bg-zinc-700 my-6"></div>
 }
 
 export const Header = {

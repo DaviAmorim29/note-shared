@@ -9,5 +9,5 @@ export abstract class NoteRepository {
 
     abstract findById(id: string): Promise<Note>
 
-    abstract findByAuthor(id: string): Promise<Note[]>
+    abstract findByUser(id: string): Promise<Note[]>
 }

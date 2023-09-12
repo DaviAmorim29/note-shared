@@ -1,11 +1,8 @@
 import { API_URL } from '@/common/contants';
+import { IUser } from '@/contexts/Auth/AuthContext';
 import { useMutation } from 'react-query';
 
-interface LoginResponse {
-    id: string;
-    username: string;
-    token: string;
-}
+type LoginResponse = IUser
 
 const loginAPI = async (username: string): Promise<LoginResponse> => {
     const response = await fetch(`${API_URL}/auth/login`, {

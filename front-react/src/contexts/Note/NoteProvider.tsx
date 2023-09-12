@@ -1,6 +1,5 @@
-import { INote, addNoteRequest, deleteNoteRequest, getNotes, updateNote } from "@/services/noteService";
+import { INote, getNotes } from "@/services/noteService";
 import { ReactNode, useEffect, useState } from "react";
-import { useAuth } from "../Auth/AuthContext";
 import { NoteContext } from "./NoteContext";
 
 interface NotesProviderProps {
@@ -10,8 +9,6 @@ interface NotesProviderProps {
 export const NotesProvider = ({ children }: NotesProviderProps) => {
   const [notes, setNotes] = useState<INote[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const { user } = useAuth()
-
   useEffect(() => {
     const fetchNotes = async () => {
       setLoading(true);
@@ -23,20 +20,22 @@ export const NotesProvider = ({ children }: NotesProviderProps) => {
     fetchNotes();
   }, []);
 
-  const addNote = async (newNote: {title: string}) => {
-    const note = await addNoteRequest(newNote)
-    setNotes((prevNotes) => [...prevNotes, note]);
+  const addNote = async (newNote: INote) => {
+    setNotes((prevNotes) => [...prevNotes, newNote]);
   };
 
-  const editNote = async (noteId: string, updatedNote: INote) => {
-    await updateNote(updatedNote)
-    setNotes((prevNotes) =>
-      prevNotes.map((note) => (note.id === noteId ? updatedNote : note))
-    );
+  const updateNote = async (updatedNote: INote) => {
+    const updatedNotes = notes.map((note) => {
+      if (note.id === updatedNote.id) {
+        return updatedNote
+      }
+      return note
+    })
+    setNotes(updatedNotes)
   };
+
 
   const deleteNote = async (noteId: string) => {
-    await deleteNoteRequest(noteId);
     setNotes((prevNotes) => prevNotes.filter((note) => note.id !== noteId));
   };
 
@@ -48,9 +47,10 @@ export const NotesProvider = ({ children }: NotesProviderProps) => {
     <NoteContext.Provider value={{ 
         notes,
         addNote,
-        editNote,
+        updateNote,
         deleteNote,
         getNote,
+        
         isLoading: loading,
       }}>
       {children}

@@ -1,10 +1,7 @@
-/*
-https://docs.nestjs.com/providers#services
-*/
-
 import { Injectable } from '@nestjs/common';
 import { UniqueEntityId } from 'src/@seed/value-object/unique-entity-id.vo';
 import { Note } from 'src/Note/domain/note.entity';
+import { User } from 'src/User/domain/user.entity';
 import { PrismaService } from 'src/infra/database/prisma.service';
 import { NoteMapper } from '../note-mapper';
 import { NoteRepository } from '../note-repository';
@@ -14,44 +11,32 @@ export class PrismaNoteRepository implements NoteRepository {
     constructor(private prismaService: PrismaService) { }
     async save(note: Note): Promise<void> {
         const noteData = NoteMapper.toPersistence(note);
-
-        // 1. Verifique e crie usuários
-        for (const collaboratorName of noteData.collaborators) {
-            await this.prismaService.user.upsert({
-                where: { name: collaboratorName },
-                update: {}, // Não atualize nada se o usuário já existir
-                create: { id: new UniqueEntityId().toString() ,name: collaboratorName, createdAt: new Date(), updatedAt: new Date() }
-            });
-        }
-
-        // 2. Upsert Note
         await this.prismaService.note.upsert({
             where: { id: noteData.id },
             update: {
                 title: noteData.title,
                 body: noteData.text,
-                updatedAt: noteData.updatedAt
+                updatedAt: noteData.updatedAt,
+                collaborators: {}
             },
             create: {
                 id: noteData.id,
                 title: noteData.title,
-                authorId: noteData.userId.toString(),
+                authorId: noteData.user.id,
                 body: noteData.text,
                 createdAt: noteData.createdAt,
                 updatedAt: noteData.updatedAt
             }
         });
-
-        // 3. Gerencie Collaborators
-        for (const collaboratorName of noteData.collaborators) {
+        for (const collab of noteData.collabs) {
             await this.prismaService.userNoteCollaborator.upsert({
                 where: {
                     noteId_userId: {
                         noteId: noteData.id,
-                        userId: collaboratorName // Assumindo que o nome do colaborador é único e pode ser usado como ID
+                        userId: collab.id
                     }
                 },
-                update: {}, // Não atualize nada se a relação já existir
+                update: {},
                 create: {
                     id: new UniqueEntityId().toString(),
                     note: {
@@ -61,23 +46,47 @@ export class PrismaNoteRepository implements NoteRepository {
                     },
                     user: {
                         connect: {
-                            name: collaboratorName
+                            name: collab.name
                         }
                     }
                 }
-            });
+            })
         }
+
+        // for (const collaboratorName of noteData.collabs) {
+        //     await this.prismaService.userNoteCollaborator.upsert({
+        //         where: {
+        //             noteId_userId: {
+        //                 noteId: noteData.id,
+        //                 userId: collaboratorName.username
+        //             }
+        //         },
+        //         update: {},
+        //         create: {
+        //             id: new UniqueEntityId().toString(),
+        //             note: {
+        //                 connect: {
+        //                     id: noteData.id
+        //                 }
+        //             },
+        //             user: {
+        //                 connect: {
+        //                     name: collaboratorName.username
+        //                 }
+        //             }
+        //         }
+        //     });
+        // }
 
         // 4. Retorne a nota criada/atualizada com os colaboradores
         return
     }
     async delete(note: Note): Promise<void> {
         const noteData = NoteMapper.toPersistence(note)
-        await this.prismaService.note.delete({ where: { id: noteData.id } })
+        await this.prismaService.note.delete({ where: { id: noteData.id }, include: { collaborators: true } })
     }
     async updateText(note: Note): Promise<void> {
         const noteData = NoteMapper.toPersistence(note)
-        console.log({ noteData })
         await this.prismaService.note.update({
             where: { id: noteData.id }, data: {
                 body: noteData.text,
@@ -96,34 +105,54 @@ export class PrismaNoteRepository implements NoteRepository {
         })
         return NoteMapper.toDomain({
             title: noteData.title,
-            userId: new UniqueEntityId(noteData.authorId),
-            collaborators: noteData.collaborators.map(collaborator => collaborator.user.name),
+            user: User.create(noteData.author, new UniqueEntityId(noteData.authorId)),
+            collaborators: noteData.collaborators.map(collaborator => User.create(collaborator.user, new UniqueEntityId(collaborator.user.id))),
             text: noteData.body,
             createdAt: noteData.createdAt,
             updatedAt: noteData.updatedAt,
         }, noteData.id)
     }
 
-    async findByAuthor(id: string): Promise<Note[]> {
+    async findByUser(id: string): Promise<Note[]> {
         const notesData = await this.prismaService.note.findMany({
-            where: { authorId: id }, include: {
-                author: true, collaborators: {
-                    include: {
-                        user: true
-                    }
-                }
-            }
-        })
-        // console.log({notesData})
-        const notesReturn = notesData.map(noteData => NoteMapper.toDomain({
+          where: {
+            OR: [
+              { authorId: id }, // Verifica se o userId é igual ao authorId
+              {
+                collaborators: {
+                  some: {
+                    userId: id, // Verifica se o userId existe na relação UserNoteCollaborator
+                  },
+                },
+              },
+            ],
+          },
+          include: {
+            author: true,
+            collaborators: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        });
+      
+        const notesReturn = notesData.map((noteData) =>
+          NoteMapper.toDomain({
             title: noteData.title,
-            userId: new UniqueEntityId(noteData.authorId),
-            collaborators: noteData.collaborators.map(collaborator => collaborator.user.name),
+            user: User.create(noteData.author, new UniqueEntityId(noteData.authorId)),
+            collaborators: noteData.collaborators.map((collaborator) =>
+              User.create(
+                collaborator.user,
+                new UniqueEntityId(collaborator.user.id)
+              )
+            ),
             text: noteData.body,
             createdAt: noteData.createdAt,
             updatedAt: noteData.updatedAt,
-        }, noteData.id))
-        // console.log({notesReturn})
-        return notesReturn
-    }
+          }, noteData.id)
+        );
+        
+        return notesReturn;
+      }
 }

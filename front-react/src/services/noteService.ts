@@ -1,4 +1,5 @@
 import { API_URL } from '@/common/contants';
+import { IUser } from '@/contexts/Auth/AuthContext';
 import { useMutation, useQueryClient } from 'react-query';
 import { logout } from './authService';
 
@@ -6,7 +7,8 @@ export interface INote {
     id: string;
     title: string;
     text: string;
-    collaborators: string[]
+    user: IUser['user'];
+    collabs: IUser['user'][]
     createdAt: string;
     updatedAt: string;
 }
@@ -14,15 +16,6 @@ export interface INote {
 interface AddNoteDTO {
     title: string;  
 }
-
-interface AddNoteResponse {
-    id: string;
-    title: string;
-    text: string;
-    createdAt: string;
-    updatedAt: string;
-}
-
 
 const getToken = () => {
     const user = localStorage.getItem('user')
@@ -65,10 +58,9 @@ export const deleteNoteRequest = async (id: string): Promise<void> => {
     }
     
     return
-    // return response.json();
 }
 
-export const updateNote = async (data: UpdateNoteDTO): Promise<void> => {
+export const updateNote = async (data: UpdateNoteDTO): Promise<INote> => {
     const response = await fetch(`${API_URL}/note/${data.id}/${data.text ? 'text' : 'collab'}`, {
         method: 'PUT',
         headers: {
@@ -82,7 +74,7 @@ export const updateNote = async (data: UpdateNoteDTO): Promise<void> => {
         const data = await response.json();
         throw new Error(data.message || 'Algum erro');
     }
-    return
+    return response.json()
 }
 
 export const useDeleteNote = () => {
@@ -95,7 +87,7 @@ export const useUpdateNote = () => {
 
 export const useAddNote = () => {
     const queryclient = useQueryClient()
-    return useMutation<AddNoteResponse,Error,AddNoteDTO,() => void>(
+    return useMutation<INote,Error,AddNoteDTO,() => void>(
     async (item: AddNoteDTO) => {
       const response = await addNoteRequest(item);
       return response;
@@ -108,7 +100,16 @@ export const useAddNote = () => {
   );
 }
 
-export type UpdateNoteDTO = Partial<INote> & { id: string };
+
+export type ReplaceType<T, K extends keyof T> = Omit<T, K> & { [P in K]: T[P] };
+
+// export type UpdateNoteDTO = Partial<ReplaceType<INote, {  }>> & { id: string, collabs: string[] };
+
+export type UpdateNoteDTO = {
+    id: string
+    text?: string
+    collabs?: string[]
+}
 
 export const updateNoteMutation = () => {
     return useMutation(

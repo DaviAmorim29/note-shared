@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const isAuth = !!user;
     const setLoginData = async (user: IUser) => {
         setUser(user);
+        navigate('/notes', { replace: true })
         if (socket) {
             socket.io.opts = {
                 query: {
@@ -29,7 +30,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const logout = async () => {
         authService.logout();
         setUser(null);
-        navigate("/", { replace: true });
+        socket.disconnect();
+        navigate('/login')
     };
     return (
         <AuthContext.Provider

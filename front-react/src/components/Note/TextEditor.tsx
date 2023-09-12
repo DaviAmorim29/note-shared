@@ -1,5 +1,6 @@
+import { useNotes } from "@/contexts/Note/NoteContext";
 import { socket } from "@/lib/utils";
-import { UpdateNoteDTO, updateNoteMutation } from "@/services/noteService";
+import { INote, UpdateNoteDTO, updateNoteMutation } from "@/services/noteService";
 import debounce from "lodash.debounce";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "../ui/use-toast";
@@ -14,14 +15,16 @@ interface TextEditorProps {
 }
 export function TextEditor({ defaultText, noteId }: TextEditorProps) {
     const [noteText, setNoteText] = useState(defaultText)
+    const { updateNote } = useNotes()
     const { mutate: updateNoteMutate } = updateNoteMutation()
     const debouncedSave = useCallback(
-		debounce((nextValue: UpdateNoteDTO) => updateNoteMutate(nextValue, {onSuccess: () => {
+		debounce((nextValue: UpdateNoteDTO) => updateNoteMutate(nextValue, {onSuccess: (newNote: INote) => {
             toast({
                 title: 'Sucesso!',
                 description: 'Nota salva com sucesso.',
                 duration: 2000
             })
+            updateNote(newNote)
         },onError: () => {toast({
             title: 'Erro!',
             description: 'Não foi possível salvar a nota.',
@@ -43,11 +46,11 @@ export function TextEditor({ defaultText, noteId }: TextEditorProps) {
         const newValue = e.target.value;
         socket.emit('updateText', { id: noteId, text: newValue, clientId})
         setNoteText(newValue)
-        debouncedSave({id: noteId , text: newValue})
+        debouncedSave({id: noteId , text: newValue || ' '})
     }
     return (
         <div>
-            <textarea className="bg-zinc-300  rounded-md w-full h-64 p-2 focus:outline-none" value={noteText} onChange={handleChangeText} />
+            <textarea className="bg-zinc-200  rounded-md w-full h-64 p-2 focus:outline-none" value={noteText} onChange={handleChangeText} />
         </div>
     )
 }

@@ -18,10 +18,10 @@ export class NoteController {
     @UseGuards(AuthGuard('jwt'))
     @Post()
     async create(@Request() req, @Body('title') title: string) {
-        const user = req.user 
+        const user = req.user as User
         return this.noteService.createNote({
             title,
-            user: user
+            user
         })
     }
 
@@ -29,9 +29,7 @@ export class NoteController {
     @Get()
     async get(@Request() req) {
         const user = req.user as User
-        const note = await this.noteService.getNoteUsers({userId: user.id.toString()})
-        const noteJson = note.map(note => note.toCustomJSON())
-        return noteJson
+        return this.noteService.getNoteUsers(user.id)
     }
 
     @UseGuards(AuthGuard("jwt"))
@@ -42,15 +40,14 @@ export class NoteController {
 
     @UseGuards(AuthGuard('jwt'))
     @Put(':id/collab')
-    async updateCollab(@Param('id') id: string, @Body('text') text: string[]) {
-        return this.noteService.updateNoteCollab(id, text)
+    async updateCollab(@Param('id') id: string, @Body('collabs') collabs: string[]) {
+        return this.noteService.updateNoteCollab(id, collabs)
     }
 
     @UseGuards(AuthGuard('jwt'))
     @Delete(':id')
     async delete(@Param('id') id: string, @Request() req) {
-        console.log(req.user, 'id: ', id)
         const user = req.user as User
-        return this.noteService.deleteNote(id, user.id.toString())
+        return this.noteService.deleteNote(id, user.id)
     }
 }

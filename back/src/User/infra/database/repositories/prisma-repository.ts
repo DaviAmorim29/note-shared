@@ -36,7 +36,7 @@ export class PrismaUserRepository implements UserRepository {
             }
         })
         if (!user) return null
-        return UserMapper.toDomain(user)
+        return UserMapper.toDomain(user, user.id)
     }
 
     async findById(id: string): Promise<User | null> {
@@ -45,6 +45,6 @@ export class PrismaUserRepository implements UserRepository {
                 id: id
             }
         })
-        return UserMapper.toDomain(user)
+        return UserMapper.toDomain(user, user.id)
     }
 }

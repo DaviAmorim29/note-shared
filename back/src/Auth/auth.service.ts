@@ -13,11 +13,8 @@ export class AuthService {
 
     async login(username: string): Promise<{ user: User['props'],token: string }> {
         const user = await this.userService.getOneOrCreate(username);
-        console.log({user})
         const payload = { username: user.name, sub: user.id };
-        console.log({payload})
         const token = this.jwtService.sign(payload);
-        console.log({token})
     
         const userJson = user.toJSON();
 

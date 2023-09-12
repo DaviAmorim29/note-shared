@@ -4,8 +4,9 @@ import { createContext, useContext } from "react";
 interface INoteContext {
     notes: INote[];
     getNote: (id: string) => INote | null
-    addNote: (note: {title: string}) => Promise<void>;
-    editNote: (noteId: string, updatedNote: INote) => Promise<void>;
+    addNote: (note: INote) => Promise<void>;
+    updateNote: (updatedNote: INote) => Promise<void>;
+    // addNoteCollab: (noteId: string, collabName: string) => Promise<void>;
     deleteNote: (noteId: string) => Promise<void>;
     isLoading: boolean;
 }

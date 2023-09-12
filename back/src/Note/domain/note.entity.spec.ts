@@ -1,13 +1,19 @@
 // make a test for all note domain entity
 
-import { UniqueEntityId } from "../../@seed/value-object/unique-entity-id.vo";
+import { User } from "src/User/domain/user.entity";
 import { Note } from "./note.entity";
 
 describe('Note Entity', () => {
+    let mainUser: User
+    beforeEach(() => {
+        mainUser = User.create({
+            name: 'amorim'
+        })
+    })
     it('should be create', () => {
         const note = new Note({
             title: 'Title',
-            userId: new UniqueEntityId()
+            user: mainUser
         })
         expect(note).toBeDefined()
     });
@@ -15,7 +21,7 @@ describe('Note Entity', () => {
     it('should be update', () => {
         const note = new Note({
             title: 'Title',
-            userId: new UniqueEntityId()
+            user: mainUser
         })
         note.updateTitle('New Title')
         expect(note.title).toBe('New Title')
@@ -24,7 +30,7 @@ describe('Note Entity', () => {
     it('should be update text', () => {
         const note = new Note({
             title: 'Title',
-            userId: new UniqueEntityId()
+            user: mainUser
         })
         note.updateText('New Text')
         expect(note.text).toBe('New Text')
@@ -33,10 +39,10 @@ describe('Note Entity', () => {
     it('should be update collaborators', () => {
         const note = new Note({
             title: 'Title',
-            userId: new UniqueEntityId()
+            user: mainUser
         })
-        const newUser = new UniqueEntityId()
-        note.addNewCollaborator(newUser)
+        const newUser = User.create({ name: 'test' })
+        note.addNewCollaborators([newUser])
         expect(note.collaborators).toHaveLength(1)
         expect(note.collaborators).toEqual([
             newUser
@@ -46,10 +52,10 @@ describe('Note Entity', () => {
     it('should be remove collaborators', () => {
         const note = new Note({
             title: 'Title',
-            userId: new UniqueEntityId()
+            user: mainUser
         })
-        const newUser = new UniqueEntityId()
-        note.addNewCollaborator(newUser)
+        const newUser = User.create({ name: 'test' })
+        note.addNewCollaborators([newUser])
         note.removeCollaborator(newUser)
         expect(note.collaborators).toHaveLength(0)
     })
@@ -57,7 +63,7 @@ describe('Note Entity', () => {
     it('should be create created_at', () => {
         const note = new Note({
             title: 'Title',
-            userId: new UniqueEntityId()
+            user: mainUser
         })
         expect(note.createdAt).toBeDefined()
     })
@@ -65,7 +71,7 @@ describe('Note Entity', () => {
     it('should be create updated_at', () => {
         const note = new Note({
             title: 'Title',
-            userId: new UniqueEntityId()
+            user: mainUser
         })
         expect(note.updatedAt).toBeDefined()
     })
@@ -73,10 +79,11 @@ describe('Note Entity', () => {
     it('should be update updated_at', () => {
         const note = new Note({
             title: 'Title',
-            userId: new UniqueEntityId()
+            user: mainUser
         })
         const oldDate = note.updatedAt
-        note.addNewCollaborator(new UniqueEntityId())
+        const collab = User.create({ name: 'test' })
+        note.addNewCollaborators([collab])
         expect(note.updatedAt).not.toBe(oldDate)
     })
 })
